@@ -1,46 +1,95 @@
-# 以下を「app.py」に書き込み
 import streamlit as st
-import matplotlib.pyplot as plt
+import pandas as pd
+import numpy as np
+
 from PIL import Image
-from model import predict
 
-st.set_option("deprecation.showfileUploaderEncoding", False)
 
-st.sidebar.title("画像認識アプリ")
-st.sidebar.write("オリジナルの画像認識モデルを使って何の画像かを判定します。")
+#######################
+
+import json
+import urllib.parse
+import urllib.request
+import requests
+##公開URLへ変更
+url = "http://e931-104-199-160-154.ngrok.io"
+
+
+##戻り値例 shapeの前が比較値
+##{'class_id': 'tf.Tensor(758865800.0, shape=(), dtype=float32)', 'class_name': 'interlab_style2'}
+
+
+
+#####################
+
+#image = Image.open('cat.jpg')
+
+#st.image(image, caption='Sunrise by the mountains')
+
+import streamlit as st
+#import matplotlib.pyplot as plt
+from PIL import Image
+import json
+import urllib.parse
+import urllib.request
+import requests
+
+
+st.set_option("deprecation.showfileUploaderEncoding", True)
+
+st.sidebar.title("画像比較")
+st.sidebar.write("スタイルとコンテンツの類似度を出力")
 
 st.sidebar.write("")
 
-img_source = st.sidebar.radio("画像のソースを選択してください。",
-                              ("画像をアップロード", "カメラで撮影"))
-if img_source == "画像をアップロード":
-    img_file = st.sidebar.file_uploader("画像を選択してください。", type=["png", "jpg"])
-elif img_source == "カメラで撮影":
-    img_file = st.camera_input("カメラで撮影")
+images = {}
+
+img_file = st.sidebar.file_uploader("対象画像Aを選択して", type=["jpg"])
+
+img_file2 = st.sidebar.file_uploader("対象画像Bを選択して", type=["jpg"],key="1")
 
 if img_file is not None:
-    with st.spinner("推定中..."):
-        img = Image.open(img_file)
-        st.image(img, caption="対象の画像", width=480)
-        st.write("")
+    if img_file2 is not None:
+        with st.spinner("推定中..."):
+            img = Image.open(img_file)
+            st.image(img, caption="対象Aの画像")#, width=480)
+            st.write("")
+            from io import BytesIO
+            buf = BytesIO()
+            img.save(buf, 'jpeg')
+            buf.seek(0)
+            images[str(0)] = buf.read()
+            buf.close()
 
-        # 予測
-        results = predict(img)
+            img = Image.open(img_file2)
+            st.image(img, caption="対象Bの画像")#, width=480)
+            st.write("")
+            from io import BytesIO
+            buf = BytesIO()
+            img.save(buf, 'jpeg')
+            buf.seek(0)
+            images[str(1)] = buf.read()               
+            buf.close()
 
-        # 結果の表示
-        st.subheader("判定結果")
-        n_top = 3  # 確率が高い順に3位まで返す
-        for result in results[:n_top]:
-            st.write(str(round(result[2]*100, 2)) + "%の確率で" + result[0] + "です。")
 
-        # 円グラフの表示
-        pie_labels = [result[1] for result in results[:n_top]]
-        pie_labels.append("others")
-        pie_probs = [result[2] for result in results[:n_top]]
-        pie_probs.append(sum([result[2] for result in results[n_top:]]))
-        fig, ax = plt.subplots()
-        wedgeprops={"width":0.3, "edgecolor":"white"}
-        textprops = {"fontsize":6}
-        ax.pie(pie_probs, labels=pie_labels, counterclock=False, startangle=90,
-               textprops=textprops, autopct="%.2f", wedgeprops=wedgeprops)  # 円グラフ
-        st.pyplot(fig)
+            
+            ##スタイル比較値API（2枚で比較）
+            #res = requests.post(url+"/style2", files=images)
+
+            res = requests.post(url+"/content2", files=images)
+            #print(res.json())
+
+            #reqbody = images
+            #print(res.json())
+            st.sidebar.write(res.json())
+            
+            res = requests.post(url+"/style2", files=images)
+            #print(res.json())
+
+            #reqbody = images
+            #print(res.json())
+            st.sidebar.write(res.json())
+
+
+
+
