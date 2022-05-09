@@ -12,7 +12,7 @@ import urllib.parse
 import urllib.request
 import requests
 ##公開URLへ変更
-url = "http://e931-104-199-160-154.ngrok.io"
+url = "http://0be0-104-199-160-154.ngrok.io"
 
 
 ##戻り値例 shapeの前が比較値
