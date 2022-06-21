@@ -12,7 +12,7 @@ import urllib.parse
 import urllib.request
 import requests
 ##公開URLへ変更
-url = "http://3.239.216.50:8003"
+url = "http://3.239.173.141:8003"
 
 
 ##戻り値例 shapeの前が比較値
